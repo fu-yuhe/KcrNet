@@ -371,11 +371,13 @@ class ESM2GlobalFeatureCache:
 
     def _load_esm_model(self):
         if self.model is None:
+            print("Loading ESM2 model...")
             self.model, self.alphabet = esm.pretrained.esm2_t12_35M_UR50D()
             if self.config.mlm_finetuned_path.exists():
+                print("Loading MLM fine-tuned weights...")
                 state_dict = torch.load(self.config.mlm_finetuned_path, map_location='cpu')
                 self.model.load_state_dict(state_dict, strict=True)
-                print("Loaded MLM fine-tuned weights.")
+                print("MLM fine-tuned weights loaded successfully.")
             self.model = self.model.to(self.config.device)
             self.model.eval()
             self.batch_converter = self.alphabet.get_batch_converter()
@@ -610,7 +612,7 @@ def train_mlm(config, sequences):
             loss.backward()
             optimizer.step()
             total_loss += loss.item()
-            pbar.set_postfix({'loss': loss.item():.4f})
+            pbar.set_postfix({'loss': f'{loss.item():.4f}'})
         print(f"MLM Epoch {epoch+1} avg loss: {total_loss/len(loader):.4f}")
     os.makedirs(config.mlm_finetuned_path.parent, exist_ok=True)
     torch.save(model.state_dict(), config.mlm_finetuned_path)
